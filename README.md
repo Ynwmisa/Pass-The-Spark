@@ -12,8 +12,8 @@ The project is based on the case **"Flexibility without losing community"**, exp
 
 ## Project status
 
-This repository is currently in the **initial setup and research stage**.
-No Version 1 features are implemented yet.
+The first **Today home-screen prototype** is implemented with local preview data.
+The prompt carousel, group cards and tab navigation work locally. Group/Journey/Profile destinations are read-only previews; answering, authentication, Firebase and NFC are not implemented yet. See [current iteration and next steps](docs/planning/current-iteration.md).
 
 ## Getting started
 
@@ -39,4 +39,4 @@ No Version 1 features are implemented yet.
 - `lib/services/`
 - `lib/utilities/`
 
-These folders are prepared for future implementation.
+The implementation also separates app routing, shared theme tokens and repositories. See docs/planning/codebase-structure.md for the intended responsibilities.
