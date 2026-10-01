@@ -40,3 +40,15 @@ The prompt carousel, group cards and tab navigation work locally. Group/Journey/
 - `lib/utilities/`
 
 The implementation also separates app routing, shared theme tokens and repositories. See docs/planning/codebase-structure.md for the intended responsibilities.
+
+## Running on the Android emulator
+
+Start an Android emulator, then run `flutter devices` and `flutter run -d emulator-5554` from this project folder (use the device ID shown on your machine).
+
+If PowerShell does not recognise Flutter, restart the terminal/editor after adding C:\Users\mjbos\flutter\bin to your user PATH. To run immediately in an existing terminal:
+
+```powershell
+& 'C:\Users\mjbos\flutter\bin\flutter.bat' run -d emulator-5554
+```
+
+The Android runner is included. iOS runner completion and iOS execution remain separate work and require macOS/Xcode.
