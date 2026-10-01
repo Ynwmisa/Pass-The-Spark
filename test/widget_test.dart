@@ -7,7 +7,7 @@ import 'package:pass_the_spark/repositories/today_repository.dart';
 
 class TestTodayRepository implements TodayRepository {
   TestTodayRepository(this.overview, {this.failFirst = false});
-  final TodayOverview overview;
+  TodayOverview overview;
   final bool failFirst;
   int calls = 0;
 
@@ -172,5 +172,49 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
     expect(find.text('Recent activity'), findsOneWidget);
+  });
+
+  testWidgets('group details have a working back path to Today', (
+    tester,
+  ) async {
+    await openHome(tester);
+    await tester.tap(find.text('Mobile Dev').last);
+    await tester.pumpAndSettle();
+    expect(find.text('Group preview'), findsOneWidget);
+    await tester.tap(find.byTooltip('Back'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Today'));
+    await tester.pumpAndSettle();
+    expect(find.text('1 of 2'), findsOneWidget);
+  });
+
+  testWidgets('refresh removes an old turn without losing the other group', (
+    tester,
+  ) async {
+    final repository = TestTodayRepository(demo);
+    await openHome(tester, repository: repository);
+    repository.overview = TodayOverview(
+      viewerId: demo.viewerId,
+      groups: [
+        SparkGroup(
+          id: 'mobile-dev',
+          name: 'Mobile Dev',
+          memberCount: 4,
+          holderId: 'sam',
+          holderName: 'Sam',
+          prompt: demo.groups.first.prompt,
+        ),
+        demo.groups.last,
+      ],
+      activities: demo.activities,
+    );
+    await tester.drag(find.byType(ListView).first, const Offset(0, 400));
+    await tester.pumpAndSettle();
+    expect(find.text('1 of 1'), findsOneWidget);
+    expect(
+      find.text('What is one thing our group should improve together?'),
+      findsOneWidget,
+    );
+    expect(find.text('Sam holds the spark'), findsOneWidget);
   });
 }
