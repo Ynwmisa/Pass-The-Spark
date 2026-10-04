@@ -5,6 +5,7 @@ class SparkGroup {
     required this.memberCount,
     required this.holderId,
     required this.holderName,
+    required this.promptId,
     required this.prompt,
   });
 
@@ -13,6 +14,7 @@ class SparkGroup {
   final int memberCount;
   final String holderId;
   final String holderName;
+  final String promptId;
   final String prompt;
 }
 

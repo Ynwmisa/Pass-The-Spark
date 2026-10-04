@@ -37,7 +37,10 @@ class MainScaffold extends StatelessWidget {
                     button: true,
                     child: InkWell(
                       borderRadius: BorderRadius.circular(13),
-                      onTap: () => navigationShell.goBranch(index),
+                      onTap: () => navigationShell.goBranch(
+                        index,
+                        initialLocation: index == navigationShell.currentIndex,
+                      ),
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(minHeight: 60),
                         child: Padding(

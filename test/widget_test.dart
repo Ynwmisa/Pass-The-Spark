@@ -4,6 +4,7 @@ import 'package:pass_the_spark/main.dart';
 import 'package:pass_the_spark/models/today_overview.dart';
 import 'package:pass_the_spark/repositories/demo_today_repository.dart';
 import 'package:pass_the_spark/repositories/today_repository.dart';
+import 'helpers/memory_draft_store.dart';
 
 class TestTodayRepository implements TodayRepository {
   TestTodayRepository(this.overview, {this.failFirst = false});
@@ -49,7 +50,10 @@ void main() {
           size: size,
           textScaler: TextScaler.linear(textScale),
         ),
-        child: PassTheSparkApp(repository: repository),
+        child: PassTheSparkApp(
+          repository: repository,
+          draftStore: MemoryDraftStore(),
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -141,20 +145,14 @@ void main() {
     expect(repository.calls, 2);
   });
 
-  testWidgets('prompt preview does not pretend to save or pass an answer', (
+  testWidgets('answer action opens the local editor and returns to Today', (
     tester,
   ) async {
     await openHome(tester);
     await tester.tap(find.text('Answer prompt'));
     await tester.pumpAndSettle();
-    expect(
-      find.text(
-        'Answering and passing are coming next. '
-        'Your spark stays with you for now.',
-      ),
-      findsOneWidget,
-    );
-    await tester.tap(find.text('Back to Today'));
+    expect(find.text('Your draft stays on this device'), findsOneWidget);
+    await tester.tap(find.byTooltip('Back'));
     await tester.pumpAndSettle();
     expect(find.text('1 of 2'), findsOneWidget);
   });
@@ -198,6 +196,7 @@ void main() {
       groups: [
         SparkGroup(
           id: 'mobile-dev',
+          promptId: 'progress-week',
           name: 'Mobile Dev',
           memberCount: 4,
           holderId: 'sam',

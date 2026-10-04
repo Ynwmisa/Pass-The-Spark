@@ -42,35 +42,7 @@ class _TodayScreenState extends State<TodayScreen> {
   }
 
   void _showPrompt(SparkGroup group) {
-    showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      isScrollControlled: true,
-      builder: (context) => SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(group.name, style: Theme.of(context).textTheme.titleMedium),
-              const SizedBox(height: 16),
-              Text(group.prompt, style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 16),
-              const Text(
-                'Answering and passing are coming next. '
-                'Your spark stays with you for now.',
-              ),
-              const SizedBox(height: 24),
-              FilledButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Back to Today'),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+    context.push('/answer/${group.id}');
   }
 
   @override

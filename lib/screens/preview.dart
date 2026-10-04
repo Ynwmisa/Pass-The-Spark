@@ -7,7 +7,7 @@ import '../widgets/activity_card.dart';
 import '../widgets/group_card.dart';
 
 /// Supporting read-only destinations for this first home-screen iteration.
-class PreviewScreen extends StatelessWidget {
+class PreviewScreen extends StatefulWidget {
   const PreviewScreen({
     super.key,
     required this.title,
@@ -20,11 +20,19 @@ class PreviewScreen extends StatelessWidget {
   final String? groupId;
 
   @override
+  State<PreviewScreen> createState() => _PreviewScreenState();
+}
+
+class _PreviewScreenState extends State<PreviewScreen> {
+  late final Future<TodayOverview> _overview = widget.repository.loadToday();
+  String get title => widget.title;
+  String? get groupId => widget.groupId;
+  @override
   Widget build(BuildContext context) => Scaffold(
     backgroundColor: Colors.transparent,
     appBar: AppBar(title: Text(title), backgroundColor: Colors.transparent),
     body: FutureBuilder<TodayOverview>(
-      future: repository.loadToday(),
+      future: _overview,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return const Center(child: Text('This preview could not be loaded.'));
