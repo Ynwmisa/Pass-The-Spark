@@ -166,6 +166,7 @@ void main() {
     repository.check.complete(DemoTodayRepository.overview);
     await tester.pumpAndSettle();
     expect(find.text('Review answer'), findsNothing);
-    expect(find.text('Good afternoon!'), findsOneWidget);
+    expect(find.text('Today'), findsOneWidget);
+    expect(find.byType(TextField), findsNothing);
   });
 }
