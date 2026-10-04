@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'app_colors.dart';
 
-ThemeData get appTheme => ThemeData(
+final ThemeData appTheme = ThemeData(
   useMaterial3: true,
   fontFamily: 'Inter',
   scaffoldBackgroundColor: AppColors.background,

@@ -13,7 +13,7 @@ The project is based on the case **"Flexibility without losing community"**, exp
 ## Project status
 
 The first **Today home-screen prototype** is implemented with local preview data.
-The prompt carousel, group cards and tab navigation work locally. Group/Journey/Profile destinations are read-only previews; answering, authentication, Firebase and NFC are not implemented yet. See [current iteration and next steps](docs/planning/current-iteration.md).
+The prompt carousel, group cards and tab navigation work locally. Group/Journey/Profile destinations are read-only previews; text answering and persistent local drafts work. Authentication, Firebase sharing, spark passing and NFC are not implemented yet. See [current iteration and next steps](docs/planning/current-iteration.md).
 
 ## Getting started
 

@@ -10,6 +10,7 @@ class DemoTodayRepository implements TodayRepository {
     groups: [
       SparkGroup(
         id: 'mobile-dev',
+        promptId: 'progress-week',
         name: 'Mobile Dev',
         memberCount: 4,
         holderId: 'preview-student',
@@ -18,6 +19,7 @@ class DemoTodayRepository implements TodayRepository {
       ),
       SparkGroup(
         id: 'ux-design',
+        promptId: 'improve-together',
         name: 'UX Design',
         memberCount: 5,
         holderId: 'preview-student',
