@@ -1,0 +1,47 @@
+class SparkGroup {
+  const SparkGroup({
+    required this.id,
+    required this.name,
+    required this.memberCount,
+    required this.holderId,
+    required this.holderName,
+    required this.prompt,
+  });
+
+  final String id;
+  final String name;
+  final int memberCount;
+  final String holderId;
+  final String holderName;
+  final String prompt;
+}
+
+class SparkActivity {
+  const SparkActivity({
+    required this.title,
+    required this.groupName,
+    required this.when,
+    required this.detail,
+  });
+
+  final String title;
+  final String groupName;
+  final String when;
+  final String detail;
+}
+
+class TodayOverview {
+  const TodayOverview({
+    required this.viewerId,
+    required this.groups,
+    required this.activities,
+  });
+
+  final String viewerId;
+  final List<SparkGroup> groups;
+  final List<SparkActivity> activities;
+
+  List<SparkGroup> get yourTurns => groups
+      .where((group) => group.holderId == viewerId)
+      .toList(growable: false);
+}
