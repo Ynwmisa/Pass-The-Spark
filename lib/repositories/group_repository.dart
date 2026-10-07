@@ -4,6 +4,7 @@ import 'today_repository.dart';
 
 abstract interface class GroupRepository
     implements TodayRepository, Listenable {
+  bool get isLocalPreview;
   Future<GroupOverview> loadGroups();
   Future<GroupDetails> loadGroup(String groupId);
   Future<GroupDetails> createGroup(String name);

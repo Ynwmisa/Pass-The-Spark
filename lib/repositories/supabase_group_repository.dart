@@ -1,0 +1,146 @@
+import 'dart:math';
+import 'package:flutter/foundation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../models/group_details.dart';
+import '../models/today_overview.dart';
+import 'group_repository.dart';
+
+class SupabaseGroupRepository extends ChangeNotifier
+    implements GroupRepository {
+  SupabaseGroupRepository(this.client)
+    : _viewerId = client.auth.currentUser!.id;
+  final SupabaseClient client;
+  final String _viewerId;
+  final Map<String, String> _createRequests = {};
+  bool _disposed = false;
+  @override
+  bool get isLocalPreview => false;
+
+  void _checkAccount() {
+    if (_disposed || client.auth.currentUser?.id != _viewerId) {
+      throw const GroupInputException('Your session changed. Sign in again.');
+    }
+  }
+
+  Future<T> _call<T>(Future<T> Function() operation) async {
+    _checkAccount();
+    try {
+      final result = await operation();
+      _checkAccount();
+      return result;
+    } on PostgrestException catch (e) {
+      if (e.code == '22023' || e.code == '42501') {
+        throw GroupInputException(e.message);
+      }
+      throw const GroupInputException(
+        'Could not load or save group information. Please try again.',
+      );
+    }
+  }
+
+  @override
+  Future<GroupOverview> loadGroups() => _call(() async {
+    final raw = Map<String, dynamic>.from(
+      await client.rpc('my_group_overview') as Map,
+    );
+    return GroupOverview(
+      viewerId: raw['viewer_id'] as String,
+      groups: (raw['groups'] as List)
+          .map((v) => _group(Map<String, dynamic>.from(v as Map)))
+          .toList(),
+      requests: (raw['requests'] as List)
+          .map((v) => _request(Map<String, dynamic>.from(v as Map)))
+          .toList(),
+    );
+  });
+  @override
+  Future<TodayOverview> loadToday() async {
+    final overview = await loadGroups();
+    return TodayOverview(
+      viewerId: overview.viewerId,
+      groups: overview.groups,
+      activities: const [],
+    );
+  }
+
+  @override
+  Future<GroupDetails> loadGroup(String groupId) => _call(() async {
+    final raw = Map<String, dynamic>.from(
+      await client.rpc('group_context', params: {'p_group_id': groupId}) as Map,
+    );
+    return GroupDetails(
+      viewerId: raw['viewer_id'] as String,
+      group: _group(Map<String, dynamic>.from(raw['group'] as Map)),
+      inviteCode: raw['invite_code'] as String?,
+      members: (raw['members'] as List).map((v) {
+        final m = Map<String, dynamic>.from(v as Map);
+        return GroupMember(
+          id: m['id'] as String,
+          name: m['name'] as String,
+          isOrganiser: m['is_organiser'] as bool,
+        );
+      }).toList(),
+    );
+  });
+  @override
+  Future<GroupDetails> createGroup(String name) => _call(() async {
+    final clean = name.trim();
+    final error = validateGroupName(clean);
+    if (error != null) throw GroupInputException(error);
+    // Keep the same ID after a lost response, so retry does not create a second group.
+    final requestId = _createRequests.putIfAbsent(clean, _requestId);
+    final id =
+        await client.rpc(
+              'create_group',
+              params: {'p_name': clean, 'p_request_id': requestId},
+            )
+            as String;
+    final details = await loadGroup(id);
+    _createRequests.remove(clean);
+    if (!_disposed) notifyListeners();
+    return details;
+  });
+  @override
+  Future<GroupJoinRequest> requestToJoin(String code) => _call(() async {
+    final error = validateInviteCode(code);
+    if (error != null) throw GroupInputException(error);
+    final raw = Map<String, dynamic>.from(
+      await client.rpc(
+            'request_to_join',
+            params: {'p_code': code.trim().toUpperCase()},
+          )
+          as Map,
+    );
+    if (!_disposed) notifyListeners();
+    return _request(raw);
+  });
+
+  static SparkGroup _group(Map<String, dynamic> m) => SparkGroup(
+    id: m['id'] as String,
+    name: m['name'] as String,
+    memberCount: (m['member_count'] as num).toInt(),
+    holderId: m['holder_id'] as String,
+    holderName: m['holder_name'] as String,
+    promptId: m['prompt_id'] as String,
+    prompt: m['prompt'] as String,
+  );
+  static GroupJoinRequest _request(Map<String, dynamic> m) => GroupJoinRequest(
+    groupId: m['group_id'] as String,
+    groupName: m['group_name'] as String,
+  );
+  static String _requestId() {
+    final r = Random.secure();
+    final b = List.generate(16, (_) => r.nextInt(256));
+    b[6] = (b[6] & 15) | 64;
+    b[8] = (b[8] & 63) | 128;
+    final h = b.map((v) => v.toRadixString(16).padLeft(2, '0')).join();
+    return '${h.substring(0, 8)}-${h.substring(8, 12)}-${h.substring(12, 16)}-${h.substring(16, 20)}-${h.substring(20)}';
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
+}

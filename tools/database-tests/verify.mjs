@@ -78,4 +78,3 @@ assert.equal((await db.query('select count(*)::int n from public.spark_states'))
 assert.equal((await db.query("select count(*)::int n from public.memberships where role='organiser'")).rows[0].n,1);
 console.log('PostgreSQL migration and access checks passed: anonymous access, private reads, role forgery, pending requests, approval, replay and holder invariants.');
 await db.close();
-

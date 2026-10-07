@@ -81,7 +81,7 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
             padding: const EdgeInsets.all(24),
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             children: [
-              const LocalGroupsNotice(),
+              if (widget.repository.isLocalPreview) const LocalGroupsNotice(),
               if (_resultName != null) ...[
                 Icon(
                   widget.join
@@ -92,16 +92,21 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
                 const SizedBox(height: 16),
                 Text(
                   widget.join
-                      ? 'Request saved locally'
+                      ? (widget.repository.isLocalPreview
+                            ? 'Request saved locally'
+                            : 'Request sent')
                       : 'Your circle is ready',
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
                 const SizedBox(height: 12),
                 Text(
                   widget.join
-                      ? 'Your request for $_resultName is pending in this preview. '
-                            'Nothing has been sent to an organiser and you cannot open private content.'
-                      : '$_resultName was created for this session. You are the organiser and first spark holder.',
+                      ? (widget.repository.isLocalPreview
+                            ? 'Your request for $_resultName is pending in this preview. Nothing has been sent to an organiser and you cannot open private content.'
+                            : 'Your request for $_resultName is waiting for organiser approval. You are not a member yet.')
+                      : (widget.repository.isLocalPreview
+                            ? '$_resultName was created for this session. You are the organiser and first spark holder.'
+                            : '$_resultName is ready. You are the organiser and first spark holder.'),
                 ),
                 const SizedBox(height: 24),
                 FilledButton(
@@ -138,7 +143,9 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
                         : 'For example Project Circle',
                     border: const OutlineInputBorder(),
                     helperText: widget.join
-                        ? 'Try STUDY26 for a local demo request.'
+                        ? (widget.repository.isLocalPreview
+                              ? 'Try STUDY26 for a local demo request.'
+                              : 'Ask your organiser for the group code.')
                         : 'Up to 60 characters.',
                     helperMaxLines: 3,
                     errorMaxLines: 3,
