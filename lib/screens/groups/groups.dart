@@ -42,6 +42,9 @@ class GroupsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size.fromHeight(52),
+              ),
               onPressed: () => context.push('/groups/join'),
               icon: const Icon(Icons.group_add_outlined),
               label: const Text('Join with a code'),
