@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import 'repositories/demo_today_repository.dart';
+import 'repositories/group_repository.dart';
+import 'repositories/local_group_repository.dart';
 import 'repositories/today_repository.dart';
 import 'routing/app_router.dart';
 import 'theme/app_theme.dart';
@@ -14,10 +15,12 @@ void main() {
 class PassTheSparkApp extends StatefulWidget {
   const PassTheSparkApp({
     super.key,
-    this.repository = const DemoTodayRepository(),
+    this.repository,
+    this.groupRepository,
     this.draftStore,
   });
-  final TodayRepository repository;
+  final TodayRepository? repository;
+  final GroupRepository? groupRepository;
   final DraftStore? draftStore;
 
   @override
@@ -25,14 +28,26 @@ class PassTheSparkApp extends StatefulWidget {
 }
 
 class _PassTheSparkAppState extends State<PassTheSparkApp> {
+  late final LocalGroupRepository? _ownedGroups =
+      widget.groupRepository == null && widget.repository is! GroupRepository
+      ? LocalGroupRepository()
+      : null;
+  late final GroupRepository _groups =
+      widget.groupRepository ??
+      (widget.repository is GroupRepository
+          ? widget.repository! as GroupRepository
+          : _ownedGroups!);
+  late final TodayRepository _repository = widget.repository ?? _groups;
   late final GoRouter _router = createAppRouter(
-    widget.repository,
+    _repository,
     widget.draftStore ?? FileDraftStore(),
+    _groups,
   );
 
   @override
   void dispose() {
     _router.dispose();
+    _ownedGroups?.dispose();
     super.dispose();
   }
 
