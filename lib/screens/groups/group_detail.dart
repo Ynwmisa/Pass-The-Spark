@@ -81,6 +81,15 @@ class GroupDetailScreen extends StatelessWidget {
                 ],
               ),
             ),
+            const SizedBox(height: 16),
+            OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size.fromHeight(52),
+              ),
+              onPressed: () => context.push('/groups/$groupId/members'),
+              icon: const Icon(Icons.people_outline),
+              label: const Text('Members and requests'),
+            ),
             if (details.inviteCode != null) ...[
               const SizedBox(height: 20),
               const Text('Invite code · expires after 7 days'),
@@ -121,9 +130,7 @@ class GroupDetailScreen extends StatelessWidget {
                 ),
               ),
             const SizedBox(height: 16),
-            const Text(
-              'Shared answers and invitations will be added in later features.',
-            ),
+            const Text('Shared answers will be added in a later feature.'),
           ],
         ),
       ),
