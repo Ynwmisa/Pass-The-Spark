@@ -178,7 +178,7 @@ void main() {
     await openHome(tester);
     await tester.tap(find.text('Mobile Dev').last);
     await tester.pumpAndSettle();
-    expect(find.text('Group preview'), findsOneWidget);
+    expect(find.text('Group'), findsOneWidget);
     await tester.tap(find.byTooltip('Back'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Today'));

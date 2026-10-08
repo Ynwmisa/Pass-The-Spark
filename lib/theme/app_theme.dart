@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'app_colors.dart';
 
 final ThemeData appTheme = ThemeData(
   useMaterial3: true,
+  appBarTheme: const AppBarTheme(
+    backgroundColor: AppColors.background,
+    foregroundColor: AppColors.text,
+    surfaceTintColor: Colors.transparent,
+    systemOverlayStyle: SystemUiOverlayStyle.dark,
+  ),
   fontFamily: 'Inter',
   scaffoldBackgroundColor: AppColors.background,
   colorScheme: ColorScheme.fromSeed(

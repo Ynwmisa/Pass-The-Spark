@@ -25,6 +25,21 @@ class _TodayScreenState extends State<TodayScreen> {
   void initState() {
     super.initState();
     _overview = widget.repository.loadToday();
+    if (widget.repository case final Listenable changes) {
+      changes.addListener(_groupsChanged);
+    }
+  }
+
+  void _groupsChanged() {
+    if (mounted) _refresh();
+  }
+
+  @override
+  void dispose() {
+    if (widget.repository case final Listenable changes) {
+      changes.removeListener(_groupsChanged);
+    }
+    super.dispose();
   }
 
   Future<void> _refresh() async {
