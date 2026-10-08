@@ -14,12 +14,14 @@ dependencies:
   path_provider: ^2.1.6
   crypto: ^3.0.7
   characters: ^1.4.1
+  supabase_flutter: ^2.18.3
+  flutter_secure_storage: ^11.2.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
-
+  http: ^1.6.0
 flutter:
   uses-material-design: true
   fonts:

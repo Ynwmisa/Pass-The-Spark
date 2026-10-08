@@ -15,11 +15,13 @@ class GroupDetails {
   GroupDetails({
     required this.group,
     required this.viewerId,
+    this.inviteCode,
     required List<GroupMember> members,
   }) : members = List.unmodifiable(members);
   final SparkGroup group;
   final String viewerId;
   final List<GroupMember> members;
+  final String? inviteCode;
 }
 
 /// A request contains only the public invitation label, never private content.

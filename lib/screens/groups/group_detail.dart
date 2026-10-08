@@ -42,7 +42,7 @@ class GroupDetailScreen extends StatelessWidget {
               'Private circle · ${details.members.length} ${details.members.length == 1 ? 'member' : 'members'}',
             ),
             const SizedBox(height: 16),
-            const LocalGroupsNotice(),
+            if (repository.isLocalPreview) const LocalGroupsNotice(),
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -81,6 +81,11 @@ class GroupDetailScreen extends StatelessWidget {
                 ],
               ),
             ),
+            if (details.inviteCode != null) ...[
+              const SizedBox(height: 20),
+              const Text('Invite code · expires after 7 days'),
+              SelectableText(details.inviteCode!),
+            ],
             const SizedBox(height: 24),
             Semantics(
               header: true,

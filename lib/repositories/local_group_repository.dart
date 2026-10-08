@@ -33,6 +33,8 @@ class LocalGroupRepository extends ChangeNotifier implements GroupRepository {
     }
   }
 
+  @override
+  bool get isLocalPreview => true;
   static const viewerId = 'preview-student';
   static const sampleInviteCode = 'STUDY26';
   final Map<String, GroupDetails> _groups = {};
@@ -74,10 +76,7 @@ class LocalGroupRepository extends ChangeNotifier implements GroupRepository {
     }
     // One local operation creates the group, its organiser and first holder.
     final id =
-        'local-group-${List.generate(
-          16,
-          (_) => _random.nextInt(256).toRadixString(16).padLeft(2, '0'),
-        ).join()}';
+        'local-group-${List.generate(16, (_) => _random.nextInt(256).toRadixString(16).padLeft(2, '0')).join()}';
     final details = GroupDetails(
       viewerId: viewerId,
       group: SparkGroup(

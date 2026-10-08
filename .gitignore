@@ -46,3 +46,9 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Local backend build configuration
+config/*.local.json
+supabase/.temp/
+supabase/.branches/
+**/node_modules/

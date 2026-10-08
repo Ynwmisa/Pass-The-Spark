@@ -1,3 +1,5 @@
+import '../services/account_session.dart';
+import '../screens/account/profile.dart';
 import '../repositories/group_repository.dart';
 import '../screens/groups/groups.dart';
 import '../screens/groups/group_detail.dart';
@@ -14,8 +16,9 @@ import 'main_scaffold.dart';
 GoRouter createAppRouter(
   TodayRepository repository,
   DraftStore draftStore,
-  GroupRepository groups,
-) => GoRouter(
+  GroupRepository groups, {
+  AccountSession? accountSession,
+}) => GoRouter(
   routes: [
     GoRoute(
       path: '/answer/:groupId',
@@ -76,8 +79,9 @@ GoRouter createAppRouter(
           routes: [
             GoRoute(
               path: '/profile',
-              builder: (context, state) =>
-                  PreviewScreen(title: 'Profile', repository: repository),
+              builder: (context, state) => accountSession == null
+                  ? PreviewScreen(title: 'Profile', repository: repository)
+                  : AccountProfileScreen(session: accountSession),
             ),
           ],
         ),

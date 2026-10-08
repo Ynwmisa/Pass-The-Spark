@@ -34,7 +34,7 @@ class GroupsScreen extends StatelessWidget {
             const SizedBox(height: 8),
             const Text('A little connection, one spark at a time.'),
             const SizedBox(height: 16),
-            const LocalGroupsNotice(),
+            if (repository.isLocalPreview) const LocalGroupsNotice(),
             FilledButton.icon(
               onPressed: () => context.push('/groups/create'),
               icon: const Icon(Icons.add),
@@ -105,8 +105,10 @@ class GroupsScreen extends StatelessWidget {
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                         const SizedBox(height: 8),
-                        const Text(
-                          'Pending in this preview. You are not a member yet.',
+                        Text(
+                          repository.isLocalPreview
+                              ? 'Pending in this preview. You are not a member yet.'
+                              : 'Waiting for organiser approval. You are not a member yet.',
                         ),
                       ],
                     ),
