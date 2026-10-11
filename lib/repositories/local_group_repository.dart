@@ -35,6 +35,17 @@ class LocalGroupRepository extends ChangeNotifier implements GroupRepository {
 
   @override
   bool get isLocalPreview => true;
+  @override
+  Future<List<GroupMembershipRequest>> loadMembershipRequests(
+    String groupId,
+  ) async => const [];
+  @override
+  Future<void> approveMembershipRequest(String requestId) async {
+    throw const GroupInputException(
+      'Approvals are available in connected groups.',
+    );
+  }
+
   static const viewerId = 'preview-student';
   static const sampleInviteCode = 'STUDY26';
   final Map<String, GroupDetails> _groups = {};

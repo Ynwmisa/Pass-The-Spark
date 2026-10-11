@@ -1,3 +1,4 @@
+import 'package:pass_the_spark/models/group_details.dart';
 import 'package:flutter/material.dart';
 import 'package:pass_the_spark/main.dart';
 import 'dart:convert';
@@ -272,6 +273,67 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.runAsync(client.dispose);
+    },
+  );
+
+  test(
+    'approval operations map pending names and notify only after a confirmed write',
+    () async {
+      var fail = true;
+      var calls = 0;
+      final client = SupabaseClient(
+        'https://example.supabase.co',
+        'test-key',
+        authOptions: const AuthClientOptions(autoRefreshToken: false),
+        httpClient: jsonClient((r) async {
+          if (r.url.path.contains('/auth/')) {
+            return http.Response(jsonEncode(sessionJson()), 200);
+          }
+          if (r.url.path.endsWith('/list_group_requests')) {
+            expect((jsonDecode(r.body) as Map)['p_group_id'], groupId);
+            return http.Response(
+              jsonEncode([
+                {'id': 'request-1', 'display_name': 'Riley'},
+              ]),
+              200,
+            );
+          }
+          if (r.url.path.endsWith('/approve_join_request')) {
+            calls++;
+            expect((jsonDecode(r.body) as Map)['p_request_id'], 'request-1');
+            return fail
+                ? http.Response(
+                    jsonEncode({
+                      'code': '42501',
+                      'message': 'Only the organiser may approve.',
+                    }),
+                    403,
+                  )
+                : http.Response('null', 200);
+          }
+          return http.Response('{}', 200);
+        }),
+      );
+      await client.auth.signInWithPassword(
+        email: 'student@example.com',
+        password: 'password',
+      );
+      final repo = SupabaseGroupRepository(client);
+      var changes = 0;
+      repo.addListener(() => changes++);
+      final requests = await repo.loadMembershipRequests(groupId);
+      expect(requests.single.displayName, 'Riley');
+      await expectLater(
+        repo.approveMembershipRequest('request-1'),
+        throwsA(isA<GroupInputException>()),
+      );
+      expect(changes, 0);
+      fail = false;
+      await repo.approveMembershipRequest('request-1');
+      expect(changes, 1);
+      expect(calls, 2);
+      repo.dispose();
+      await client.dispose();
     },
   );
 }

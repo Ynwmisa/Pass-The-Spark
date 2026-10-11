@@ -31,7 +31,7 @@ class _TodayScreenState extends State<TodayScreen> {
   }
 
   void _groupsChanged() {
-    if (mounted) _refresh();
+    if (mounted) _refresh(resetPrompt: false);
   }
 
   @override
@@ -42,11 +42,11 @@ class _TodayScreenState extends State<TodayScreen> {
     super.dispose();
   }
 
-  Future<void> _refresh() async {
+  Future<void> _refresh({bool resetPrompt = true}) async {
     final next = widget.repository.loadToday();
     setState(() {
       _overview = next;
-      _promptIndex = 0;
+      if (resetPrompt) _promptIndex = 0;
     });
     // FutureBuilder displays repository errors and offers an explicit retry.
     try {

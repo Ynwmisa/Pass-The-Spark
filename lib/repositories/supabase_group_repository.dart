@@ -116,6 +116,35 @@ class SupabaseGroupRepository extends ChangeNotifier
     return _request(raw);
   });
 
+  @override
+  Future<List<GroupMembershipRequest>> loadMembershipRequests(String groupId) =>
+      _call(() async {
+        final rows =
+            await client.rpc(
+                  'list_group_requests',
+                  params: {'p_group_id': groupId},
+                )
+                as List;
+        return List.unmodifiable(
+          rows.map((row) {
+            final item = Map<String, dynamic>.from(row as Map);
+            return GroupMembershipRequest(
+              id: item['id'] as String,
+              displayName: item['display_name'] as String,
+            );
+          }),
+        );
+      });
+  @override
+  Future<void> approveMembershipRequest(String requestId) => _call(() async {
+    await client.rpc(
+      'approve_join_request',
+      params: {'p_request_id': requestId},
+    );
+    _checkAccount();
+    notifyListeners();
+  });
+
   static SparkGroup _group(Map<String, dynamic> m) => SparkGroup(
     id: m['id'] as String,
     name: m['name'] as String,

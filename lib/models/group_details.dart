@@ -22,6 +22,8 @@ class GroupDetails {
   final String viewerId;
   final List<GroupMember> members;
   final String? inviteCode;
+  bool get isViewerOrganiser =>
+      members.any((member) => member.id == viewerId && member.isOrganiser);
 }
 
 /// A request contains only the public invitation label, never private content.
@@ -41,6 +43,12 @@ class GroupOverview {
   final String viewerId;
   final List<SparkGroup> groups;
   final List<GroupJoinRequest> requests;
+}
+
+class GroupMembershipRequest {
+  const GroupMembershipRequest({required this.id, required this.displayName});
+  final String id;
+  final String displayName;
 }
 
 class GroupInputException implements Exception {
