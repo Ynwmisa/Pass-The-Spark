@@ -1,3 +1,5 @@
+import 'package:pass_the_spark/main.dart';
+import 'helpers/memory_draft_store.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -201,5 +203,41 @@ void main() {
     repo.pending!.complete();
     await t.pumpAndSettle();
     expect(t.takeException(), isNull);
+  });
+
+  testWidgets('approval navigation preserves the selected Today prompt', (
+    t,
+  ) async {
+    final repo = ApprovalRepository();
+    addTearDown(repo.dispose);
+    t.view.physicalSize = const Size(390, 844);
+    t.view.devicePixelRatio = 1;
+    addTearDown(t.view.resetPhysicalSize);
+    addTearDown(t.view.resetDevicePixelRatio);
+    await t.pumpWidget(
+      PassTheSparkApp(repository: repo, draftStore: MemoryDraftStore()),
+    );
+    await t.pumpAndSettle();
+    await t.tap(find.byTooltip('Next prompt'));
+    await t.pumpAndSettle();
+    expect(find.text('2 of 2'), findsOneWidget);
+    await t.tap(find.text('Groups').last);
+    await t.pumpAndSettle();
+    await t.tap(find.text('Mobile Dev'));
+    await t.pumpAndSettle();
+    await t.scrollUntilVisible(
+      find.text('Members and requests'),
+      100,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await t.pumpAndSettle();
+    await t.tap(find.text('Members and requests'));
+    await t.pumpAndSettle();
+    await confirm(t);
+    await t.pumpAndSettle();
+    expect(find.text('5 accepted members'), findsOneWidget);
+    await t.tap(find.text('Today'));
+    await t.pumpAndSettle();
+    expect(find.text('2 of 2'), findsOneWidget);
   });
 }
