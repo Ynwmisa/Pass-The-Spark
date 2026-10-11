@@ -336,4 +336,48 @@ void main() {
       await client.dispose();
     },
   );
+  test(
+    'leave sends the group ID and notifies only after server confirmation',
+    () async {
+      var fail = true;
+      final client = SupabaseClient(
+        'https://example.supabase.co',
+        'test-key',
+        authOptions: const AuthClientOptions(autoRefreshToken: false),
+        httpClient: jsonClient((r) async {
+          if (r.url.path.contains('/auth/')) {
+            return http.Response(jsonEncode(sessionJson()), 200);
+          }
+          expect(r.url.path.endsWith('/leave_group'), isTrue);
+          expect((jsonDecode(r.body) as Map)['p_group_id'], groupId);
+          return fail
+              ? http.Response(
+                  jsonEncode({
+                    'code': '22023',
+                    'message': 'Pass the spark before leaving.',
+                  }),
+                  400,
+                )
+              : http.Response('null', 200);
+        }),
+      );
+      await client.auth.signInWithPassword(
+        email: 'student@example.com',
+        password: 'password',
+      );
+      final repo = SupabaseGroupRepository(client);
+      var changes = 0;
+      repo.addListener(() => changes++);
+      await expectLater(
+        repo.leaveGroup(groupId),
+        throwsA(isA<GroupInputException>()),
+      );
+      expect(changes, 0);
+      fail = false;
+      await repo.leaveGroup(groupId);
+      expect(changes, 1);
+      repo.dispose();
+      await client.dispose();
+    },
+  );
 }
