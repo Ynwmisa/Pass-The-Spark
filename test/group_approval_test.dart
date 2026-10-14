@@ -226,12 +226,12 @@ void main() {
     await t.tap(find.text('Mobile Dev'));
     await t.pumpAndSettle();
     await t.scrollUntilVisible(
-      find.text('Members and requests'),
+      find.text('Members'),
       100,
       scrollable: find.byType(Scrollable).first,
     );
     await t.pumpAndSettle();
-    await t.tap(find.text('Members and requests'));
+    await t.tap(find.text('Members'));
     await t.pumpAndSettle();
     await confirm(t);
     await t.pumpAndSettle();

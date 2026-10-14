@@ -102,8 +102,9 @@ void main() {
       await tester.tap(find.text('Open group'));
       await tester.pumpAndSettle();
       expect(find.text('Project Circle'), findsOneWidget);
-      expect(find.text('You hold the spark'), findsOneWidget);
-      expect(find.text('Misael (you)'), findsOneWidget);
+      expect(find.text('You have the spark'), findsOneWidget);
+      expect(find.text('1 MEMBER'), findsOneWidget);
+      expect(find.text('Group overview'), findsOneWidget);
       await tester.tap(find.text('Today'));
       await tester.pumpAndSettle();
       expect(find.text('Project Circle'), findsWidgets);
@@ -218,7 +219,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Noor holds the spark'), findsOneWidget);
     expect(find.text('Answer prompt'), findsNothing);
-    expect(find.textContaining('It is their turn.'), findsOneWidget);
+    expect(find.text('WAITING FOR YOUR TURN'), findsOneWidget);
   });
 
   testWidgets(
@@ -263,6 +264,10 @@ void main() {
       await tester.scrollUntilVisible(find.text('Mobile Dev'), 150);
       await tester.pumpAndSettle();
       await tester.tap(find.text('Mobile Dev'));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(find.text('Members'), 150);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Members'));
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(find.text('Noor'), 150);
       await tester.pumpAndSettle();
