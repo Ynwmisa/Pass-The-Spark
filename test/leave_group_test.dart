@@ -151,6 +151,8 @@ void main() {
         MaterialApp.router(theme: appTheme, routerConfig: router),
       );
       await t.pumpAndSettle();
+      await t.tap(find.text('Group settings'));
+      await t.pumpAndSettle();
       await t.scrollUntilVisible(
         find.text('Leave group'),
         300,
