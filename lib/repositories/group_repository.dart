@@ -10,5 +10,6 @@ abstract interface class GroupRepository
   Future<GroupDetails> createGroup(String name);
   Future<GroupJoinRequest> requestToJoin(String code);
   Future<List<GroupMembershipRequest>> loadMembershipRequests(String groupId);
+  Future<void> leaveGroup(String groupId);
   Future<void> approveMembershipRequest(String requestId);
 }

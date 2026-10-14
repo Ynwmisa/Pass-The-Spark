@@ -145,6 +145,13 @@ class SupabaseGroupRepository extends ChangeNotifier
     notifyListeners();
   });
 
+  @override
+  Future<void> leaveGroup(String groupId) => _call(() async {
+    await client.rpc('leave_group', params: {'p_group_id': groupId});
+    _checkAccount();
+    notifyListeners();
+  });
+
   static SparkGroup _group(Map<String, dynamic> m) => SparkGroup(
     id: m['id'] as String,
     name: m['name'] as String,

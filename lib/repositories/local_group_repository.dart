@@ -46,6 +46,20 @@ class LocalGroupRepository extends ChangeNotifier implements GroupRepository {
     );
   }
 
+  @override
+  Future<void> leaveGroup(String groupId) async {
+    final details = _groups[groupId];
+    if (details == null) return;
+    if (details.isViewerOrganiser || details.group.holderId == viewerId) {
+      throw const GroupInputException(
+        'A handover is needed before you can leave.',
+      );
+    }
+    _groups.remove(groupId);
+    _requests.remove(groupId);
+    notifyListeners();
+  }
+
   static const viewerId = 'preview-student';
   static const sampleInviteCode = 'STUDY26';
   final Map<String, GroupDetails> _groups = {};

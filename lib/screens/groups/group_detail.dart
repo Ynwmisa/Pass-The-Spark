@@ -6,6 +6,7 @@ import '../../repositories/group_repository.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/group_data_view.dart';
 import '../../widgets/local_groups_notice.dart';
+import 'leave_group.dart';
 
 class GroupDetailScreen extends StatelessWidget {
   const GroupDetailScreen({
@@ -131,6 +132,8 @@ class GroupDetailScreen extends StatelessWidget {
               ),
             const SizedBox(height: 16),
             const Text('Shared answers will be added in a later feature.'),
+            const SizedBox(height: 24),
+            LeaveGroupAction(repository: repository, details: details),
           ],
         ),
       ),
