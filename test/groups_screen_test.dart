@@ -116,7 +116,7 @@ void main() {
     'unknown code preserves input; valid request stays pending and private',
     (tester) async {
       await open(tester, ControlledGroups(seedDemo: false));
-      await tester.tap(find.text('Join with a code'));
+      await tester.tap(find.text('Join group'));
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextFormField), 'WRONG77');
       await tester.tap(find.text('Request to join'));
