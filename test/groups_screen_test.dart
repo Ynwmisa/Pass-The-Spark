@@ -101,10 +101,10 @@ void main() {
       expect(find.text('Your circle is ready'), findsOneWidget);
       await tester.tap(find.text('Open group'));
       await tester.pumpAndSettle();
-      expect(find.text('Project Circle'), findsOneWidget);
-      expect(find.text('You have the spark'), findsOneWidget);
-      expect(find.text('1 MEMBER'), findsOneWidget);
-      expect(find.text('Group overview'), findsOneWidget);
+      expect(find.text('Project Circle — group page'), findsOneWidget);
+      expect(find.text('You hold the spark'), findsOneWidget);
+      expect(find.text('1 joined'), findsOneWidget);
+      expect(find.text('Group tools'), findsOneWidget);
       await tester.tap(find.text('Today'));
       await tester.pumpAndSettle();
       expect(find.text('Project Circle'), findsWidgets);
@@ -265,9 +265,9 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Mobile Dev'));
       await tester.pumpAndSettle();
-      await tester.scrollUntilVisible(find.text('Members'), 150);
+      await tester.scrollUntilVisible(find.text('Members & invitations'), 150);
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Members'));
+      await tester.tap(find.text('Members & invitations'));
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(find.text('Noor'), 150);
       await tester.pumpAndSettle();
