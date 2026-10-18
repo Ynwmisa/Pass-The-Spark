@@ -234,8 +234,7 @@ class _TodayScreenState extends State<TodayScreen> {
                                 isYourTurn: group.holderId == overview.viewerId,
                                 highlighted:
                                     group.id == overview.groups.first.id,
-                                onTap: () =>
-                                    context.push('/groups/${group.id}'),
+                                onTap: () => context.go('/groups/${group.id}'),
                               ),
                             ),
                           )
