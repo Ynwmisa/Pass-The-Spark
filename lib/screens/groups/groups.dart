@@ -99,6 +99,14 @@ class GroupsScreen extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 24),
+              Semantics(
+                header: true,
+                child: Text(
+                  'My groups',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+              const SizedBox(height: 12),
               if (overview.groups.isEmpty)
                 const Text(
                   'No groups yet. Create a circle or request to join one.',
@@ -131,6 +139,42 @@ class GroupsScreen extends StatelessWidget {
                     );
                   },
                 ),
+              const SizedBox(height: 24),
+              Semantics(
+                header: true,
+                child: Text(
+                  'Invitations',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'No invitations yet',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'Have an invite code? Use Join group to request access.',
+                      style: TextStyle(
+                        color: AppColors.muted,
+                        fontSize: 12,
+                        height: 1.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               if (overview.requests.isNotEmpty) ...[
                 const SizedBox(height: 24),
                 Semantics(
