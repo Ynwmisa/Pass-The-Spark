@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../models/group_details.dart';
 import '../../repositories/group_repository.dart';
 
@@ -142,6 +143,16 @@ class _GroupMembersScreenState extends State<GroupMembersScreen> {
                 '${data.details.members.length} accepted ${data.details.members.length == 1 ? 'member' : 'members'}',
               ),
               const SizedBox(height: 20),
+              if (data.details.isViewerOrganiser &&
+                  !widget.repository.isLocalPreview) ...[
+                FilledButton.icon(
+                  onPressed: () =>
+                      context.push('/groups/${widget.groupId}/invite'),
+                  icon: const Icon(Icons.person_add_outlined),
+                  label: const Text('Invite member'),
+                ),
+                const SizedBox(height: 20),
+              ],
               if (snapshot.connectionState != ConnectionState.done)
                 const LinearProgressIndicator(),
               if (_message != null) ...[

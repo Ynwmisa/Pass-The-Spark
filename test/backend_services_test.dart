@@ -380,4 +380,83 @@ void main() {
       await client.dispose();
     },
   );
+  test(
+    'invitation SDK maps inbox, preserves send retry ID and confirms response before notifying',
+    () async {
+      var fail = true;
+      final requestIds = <String>[];
+      final client = SupabaseClient(
+        'https://example.supabase.co',
+        'test-key',
+        authOptions: const AuthClientOptions(autoRefreshToken: false),
+        httpClient: jsonClient((r) async {
+          if (r.url.path.contains('/auth/')) {
+            return http.Response(jsonEncode(sessionJson()), 200);
+          }
+          if (r.url.path.endsWith('/my_group_overview')) {
+            return http.Response(
+              jsonEncode({
+                'viewer_id': userId,
+                'groups': [],
+                'requests': [],
+                'invitations': [
+                  {
+                    'id': 'invite-1',
+                    'group_id': groupId,
+                    'group_name': 'Circle',
+                  },
+                ],
+              }),
+              200,
+            );
+          }
+          final params = jsonDecode(r.body) as Map;
+          if (r.url.path.endsWith('/invite_group_member')) {
+            expect(params['p_group_id'], groupId);
+            expect(params['p_email'], 'student@example.com');
+            requestIds.add(params['p_request_id'] as String);
+          } else {
+            expect(r.url.path.endsWith('/respond_to_group_invitation'), isTrue);
+            expect(params['p_invitation_id'], 'invite-1');
+            expect(params['p_accept'], isFalse);
+          }
+          return fail
+              ? http.Response(
+                  jsonEncode({'code': '22023', 'message': 'Please try again.'}),
+                  400,
+                )
+              : http.Response('null', 200);
+        }),
+      );
+      await client.auth.signInWithPassword(
+        email: 'student@example.com',
+        password: 'password',
+      );
+      final repo = SupabaseGroupRepository(client);
+      var changes = 0;
+      repo.addListener(() => changes++);
+      final overview = await repo.loadGroups();
+      expect(overview.invitations.single.groupName, 'Circle');
+      await expectLater(
+        repo.inviteMember(groupId, ' STUDENT@EXAMPLE.COM '),
+        throwsA(isA<GroupInputException>()),
+      );
+      expect(changes, 0);
+      fail = false;
+      await repo.inviteMember(groupId, 'student@example.com');
+      expect(requestIds[0], requestIds[1]);
+      expect(changes, 1);
+      fail = true;
+      await expectLater(
+        repo.respondToInvitation('invite-1', accept: false),
+        throwsA(isA<GroupInputException>()),
+      );
+      expect(changes, 1);
+      fail = false;
+      await repo.respondToInvitation('invite-1', accept: false);
+      expect(changes, 2);
+      repo.dispose();
+      await client.dispose();
+    },
+  );
 }

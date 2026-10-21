@@ -38,11 +38,14 @@ class GroupOverview {
     required this.viewerId,
     required List<SparkGroup> groups,
     required List<GroupJoinRequest> requests,
+    List<GroupInvitation> invitations = const [],
   }) : groups = List.unmodifiable(groups),
-       requests = List.unmodifiable(requests);
+       requests = List.unmodifiable(requests),
+       invitations = List.unmodifiable(invitations);
   final String viewerId;
   final List<SparkGroup> groups;
   final List<GroupJoinRequest> requests;
+  final List<GroupInvitation> invitations;
 }
 
 class GroupMembershipRequest {
@@ -69,6 +72,26 @@ String? validateInviteCode(String? value) {
   final code = (value ?? '').trim();
   if (!RegExp(r'^[a-zA-Z0-9]{6,12}$').hasMatch(code)) {
     return 'Enter the 6–12 letter or number code.';
+  }
+  return null;
+}
+
+class GroupInvitation {
+  const GroupInvitation({
+    required this.id,
+    required this.groupId,
+    required this.groupName,
+  });
+  final String id;
+  final String groupId;
+  final String groupName;
+}
+
+String? validateInvitationEmail(String? value) {
+  final email = (value ?? '').trim();
+  if (email.length > 254 ||
+      !RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(email)) {
+    return 'Enter a valid email address.';
   }
   return null;
 }

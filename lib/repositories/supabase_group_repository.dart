@@ -13,6 +13,7 @@ class SupabaseGroupRepository extends ChangeNotifier
   final SupabaseClient client;
   final String _viewerId;
   final Map<String, String> _createRequests = {};
+  final Map<String, String> _invitationRequests = {};
   bool _disposed = false;
   @override
   bool get isLocalPreview => false;
@@ -46,6 +47,14 @@ class SupabaseGroupRepository extends ChangeNotifier
     );
     return GroupOverview(
       viewerId: raw['viewer_id'] as String,
+      invitations: ((raw['invitations'] as List?) ?? []).map((v) {
+        final item = Map<String, dynamic>.from(v as Map);
+        return GroupInvitation(
+          id: item['id'] as String,
+          groupId: item['group_id'] as String,
+          groupName: item['group_name'] as String,
+        );
+      }).toList(),
       groups: (raw['groups'] as List)
           .map((v) => _group(Map<String, dynamic>.from(v as Map)))
           .toList(),
@@ -148,6 +157,38 @@ class SupabaseGroupRepository extends ChangeNotifier
   @override
   Future<void> leaveGroup(String groupId) => _call(() async {
     await client.rpc('leave_group', params: {'p_group_id': groupId});
+    _checkAccount();
+    notifyListeners();
+  });
+
+  @override
+  Future<void> inviteMember(String groupId, String email) => _call(() async {
+    final error = validateInvitationEmail(email);
+    if (error != null) throw GroupInputException(error);
+    final clean = email.trim().toLowerCase();
+    final key = '$groupId:$clean';
+    final request = _invitationRequests.putIfAbsent(key, _requestId);
+    await client.rpc(
+      'invite_group_member',
+      params: {
+        'p_group_id': groupId,
+        'p_email': clean,
+        'p_request_id': request,
+      },
+    );
+    _checkAccount();
+    _invitationRequests.remove(key);
+    notifyListeners();
+  });
+  @override
+  Future<void> respondToInvitation(
+    String invitationId, {
+    required bool accept,
+  }) => _call(() async {
+    await client.rpc(
+      'respond_to_group_invitation',
+      params: {'p_invitation_id': invitationId, 'p_accept': accept},
+    );
     _checkAccount();
     notifyListeners();
   });

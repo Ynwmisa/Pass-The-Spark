@@ -60,6 +60,23 @@ class LocalGroupRepository extends ChangeNotifier implements GroupRepository {
     notifyListeners();
   }
 
+  @override
+  Future<void> inviteMember(String groupId, String email) async {
+    throw const GroupInputException(
+      'Invitations are available in connected groups.',
+    );
+  }
+
+  @override
+  Future<void> respondToInvitation(
+    String invitationId, {
+    required bool accept,
+  }) async {
+    throw const GroupInputException(
+      'Invitations are available in connected groups.',
+    );
+  }
+
   static const viewerId = 'preview-student';
   static const sampleInviteCode = 'STUDY26';
   final Map<String, GroupDetails> _groups = {};

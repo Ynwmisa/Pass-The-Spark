@@ -8,6 +8,7 @@ import '../../theme/app_colors.dart';
 import '../../widgets/group_data_view.dart';
 import '../../widgets/local_groups_notice.dart';
 import 'leave_group.dart';
+import 'invite_member.dart';
 
 class GroupDetailScreen extends StatelessWidget {
   const GroupDetailScreen({
@@ -253,6 +254,21 @@ class _GroupSettings extends StatelessWidget {
         const SizedBox(height: 8),
         Text(details.group.name),
         const SizedBox(height: 24),
+        if (details.isViewerOrganiser && !repository.isLocalPreview) ...[
+          _ToolRow(
+            title: 'Invite member',
+            subtitle: 'Send an in-app invitation by email',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => InviteMemberScreen(
+                  repository: repository,
+                  groupId: details.group.id,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+        ],
         if (details.inviteCode != null)
           _ToolRow(
             title: 'Share invite code',
