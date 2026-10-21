@@ -7,6 +7,7 @@ import '../../theme/app_colors.dart';
 import '../../widgets/group_card.dart';
 import '../../widgets/group_data_view.dart';
 import '../../widgets/local_groups_notice.dart';
+import 'group_invitation_card.dart';
 
 class GroupsScreen extends StatelessWidget {
   const GroupsScreen({super.key, required this.repository});
@@ -41,7 +42,7 @@ class GroupsScreen extends StatelessWidget {
                     '${overview.groups.length} ${overview.groups.length == 1 ? 'group' : 'groups'}',
                   ),
                   _CountBadge(
-                    '${overview.requests.length} pending ${overview.requests.length == 1 ? 'request' : 'requests'}',
+                    '${overview.invitations.length} ${overview.invitations.length == 1 ? 'invite' : 'invites'}',
                   ),
                 ],
               ),
@@ -148,33 +149,40 @@ class GroupsScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'No invitations yet',
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
+              if (overview.invitations.isEmpty)
+                Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'No invitations yet',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 6),
-                    const Text(
-                      'Have an invite code? Use Join group to request access.',
-                      style: TextStyle(
-                        color: AppColors.muted,
-                        fontSize: 12,
-                        height: 1.5,
+                      const SizedBox(height: 6),
+                      const Text(
+                        'Have an invite code? Use Join group to request access.',
+                        style: TextStyle(
+                          color: AppColors.muted,
+                          fontSize: 12,
+                          height: 1.5,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
+                    ],
+                  ),
+                )
+              else
+                for (final invitation in overview.invitations)
+                  GroupInvitationCard(
+                    repository: repository,
+                    invitation: invitation,
+                  ),
               if (overview.requests.isNotEmpty) ...[
                 const SizedBox(height: 24),
                 Semantics(

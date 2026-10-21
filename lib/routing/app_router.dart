@@ -1,4 +1,5 @@
 import '../screens/groups/group_members.dart';
+import '../screens/groups/invite_member.dart';
 import '../services/account_session.dart';
 import '../screens/account/profile.dart';
 import '../repositories/group_repository.dart';
@@ -63,6 +64,13 @@ GoRouter createAppRouter(
                     groupId: state.pathParameters['groupId']!,
                   ),
                   routes: [
+                    GoRoute(
+                      path: 'invite',
+                      builder: (context, state) => InviteMemberScreen(
+                        repository: groups,
+                        groupId: state.pathParameters['groupId']!,
+                      ),
+                    ),
                     GoRoute(
                       path: 'members',
                       builder: (context, state) => GroupMembersScreen(
