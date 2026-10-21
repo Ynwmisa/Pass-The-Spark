@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pass_the_spark/main.dart';
+import 'package:pass_the_spark/routing/main_scaffold.dart';
 import 'package:pass_the_spark/models/today_overview.dart';
 import 'package:pass_the_spark/repositories/demo_today_repository.dart';
 import 'package:pass_the_spark/repositories/today_repository.dart';
@@ -179,8 +180,16 @@ void main() {
     await tester.tap(find.text('Mobile Dev').last);
     await tester.pumpAndSettle();
     expect(find.text('Group tools'), findsOneWidget);
+    expect(
+      tester
+          .widget<MainScaffold>(find.byType(MainScaffold))
+          .navigationShell
+          .currentIndex,
+      1,
+    );
     await tester.tap(find.byTooltip('Back'));
     await tester.pumpAndSettle();
+    expect(find.text('Your groups'), findsOneWidget);
     await tester.tap(find.text('Today'));
     await tester.pumpAndSettle();
     expect(find.text('1 of 2'), findsOneWidget);
