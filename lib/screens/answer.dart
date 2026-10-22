@@ -7,6 +7,8 @@ import '../controllers/answer_draft_controller.dart';
 import '../models/answer_draft.dart';
 import '../models/today_overview.dart';
 import '../repositories/today_repository.dart';
+import '../repositories/group_repository.dart';
+import 'pass_spark.dart';
 import '../services/draft_store.dart';
 import '../theme/app_colors.dart';
 
@@ -189,7 +191,8 @@ class _AnswerEditorState extends State<_AnswerEditor>
             (group) =>
                 group.id == widget.group.id &&
                 group.promptId == widget.group.promptId &&
-                group.prompt == widget.group.prompt,
+                group.prompt == widget.group.prompt &&
+                group.version == widget.group.version,
           );
       if (!eligible) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -204,8 +207,13 @@ class _AnswerEditorState extends State<_AnswerEditor>
       await Navigator.push<void>(
         context,
         MaterialPageRoute(
-          builder: (_) =>
-              AnswerReviewScreen(group: widget.group, answer: _draft.text),
+          builder: (_) => widget.repository is GroupRepository
+              ? PassSparkScreen(
+                  repository: widget.repository as GroupRepository,
+                  turn: widget.group,
+                  answer: _draft.text,
+                )
+              : AnswerReviewScreen(group: widget.group, answer: _draft.text),
         ),
       );
     } catch (_) {
