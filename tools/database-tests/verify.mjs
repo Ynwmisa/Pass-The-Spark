@@ -18,6 +18,7 @@ await db.exec(await fs.readFile(new URL('../../supabase/migrations/2026102800010
 await db.exec(await fs.readFile(new URL('../../supabase/migrations/20261028000200_group_request_review.sql', import.meta.url),'utf8'));
 await db.exec(await fs.readFile(new URL('../../supabase/migrations/20261028000300_leave_group.sql', import.meta.url),'utf8'));
 await db.exec(await fs.readFile(new URL('../../supabase/migrations/20261028000400_member_invitations.sql', import.meta.url),'utf8'));
+await db.exec(await fs.readFile(new URL('../../supabase/migrations/20261028000500_spark_passing.sql', import.meta.url),'utf8'));
 const a='11111111-1111-4111-8111-111111111111';
 const b='22222222-2222-4222-8222-222222222222';
 await db.query("insert into auth.users(id,raw_user_meta_data) values ($1,'{\"display_name\":\"Student A\"}'),($2,'{\"display_name\":\"Student B\",\"role\":\"organiser\"}')",[a,b]);
@@ -176,5 +177,83 @@ const future='66666666-6666-4666-8666-666666666666';
 await db.query("insert into auth.users(id,email,email_confirmed_at) values($1,'future@example.com',now())",[future]);
 await asUser(future);
 assert.equal((await db.query('select public.my_group_overview() as data')).rows[0].data.invitations.length,1);
-console.log('PostgreSQL membership and invitation checks passed: verified recipient privacy, send/response retries, decline, expiry, pending-request acceptance, pre-signup invitation and holder preservation.');
+
+// Publish only on final pass: answer + holder change are one transaction.
+await asUser(a);
+ctx=(await db.query('select public.group_context($1) as data',[gid])).rows[0].data;
+let turn=ctx.group;
+assert.equal(turn.version,1);
+const passSql='select public.pass_spark($1,$2,$3,$4,$5) as data';
+const passArgs=[gid,turn.version,turn.prompt_id,b,'We tested the prototype together.'];
+await asUser(null);
+await rejected(passSql,passArgs);
+await rejected('select public.group_contributions($1)',[gid]);
+await asUser(future);
+await rejected(passSql,passArgs);
+await rejected('select public.group_contributions($1)',[gid]);
+assert.equal((await db.query('select * from public.contributions')).rows.length,0);
+await asUser(b);
+await rejected(passSql,passArgs);
+await asUser(a);
+await rejected(passSql,[gid,1,turn.prompt_id,a,'Self'],'22023');
+await rejected(passSql,[gid,1,turn.prompt_id,c,'Departed member'],'22023');
+await rejected(passSql,[gid,1,turn.prompt_id,b,' \n\t '],'22023');
+await rejected(passSql,[gid,1,turn.prompt_id,b,'x'.repeat(12001)],'22023');
+await rejected(passSql,[gid,0,turn.prompt_id,b,'Stale'],'22023');
+await rejected(passSql,[gid,1,request,b,'Wrong prompt'],'22023');
+await rejected('update public.spark_states set holder_id=$1 where group_id=$2',[b,gid]);
+await rejected('insert into public.contributions(group_id,turn_version,sender_id,recipient_id,sender_name,recipient_name,prompt_id,prompt_text,answer) values($1,1,$2,$3,\'A\',\'B\',$4,\'Prompt\',\'Answer\')',[gid,a,b,turn.prompt_id]);
+const results=await Promise.all([db.query(passSql,passArgs),db.query(passSql,passArgs)]);
+const receipt=results[0].rows[0].data;
+assert.equal(results[1].rows[0].data.id,receipt.id);
+assert.equal(receipt.answer,passArgs[4]);
+assert.equal((await db.query('select * from public.contributions')).rows.length,1);
+ctx=(await db.query('select public.group_context($1) as data',[gid])).rows[0].data;
+assert.equal(ctx.group.holder_id,b);
+assert.equal(ctx.group.version,2);
+assert.notEqual(ctx.group.prompt_id,turn.prompt_id);
+assert.equal(ctx.group.prompt,turn.prompt);
+assert.equal(ctx.members.length,2);
+await rejected(passSql,[gid,1,turn.prompt_id,b,'Different answer'],'22023');
+await asUser(b);
+let history=(await db.query('select public.group_contributions($1) as data',[gid])).rows[0].data;
+assert.equal(history.length,1);
+assert.equal(history[0].sender_name,'Student A');
+assert.equal(history[0].recipient_name,'Student B');
+let overview=(await db.query('select public.my_group_overview() as data')).rows[0].data;
+assert.equal(overview.activities[0].sender_name,'Student A');
+await db.query(passSql,[gid,2,ctx.group.prompt_id,a,'The next update.']);
+await asUser(a);
+// Exact retry confirms the historical receipt after the spark has already returned.
+assert.equal((await db.query(passSql,passArgs)).rows[0].data.id,receipt.id);
+await rejected(passSql,[gid,1,turn.prompt_id,b,'Old editor changed answer'],'22023');
+ctx=(await db.query('select public.group_context($1) as data',[gid])).rows[0].data;
+assert.equal(ctx.group.version,3);
+await db.exec('reset role');
+// Force the second write to fail, proving the contribution insert is rolled back too.
+await db.exec("create function private.fail_transfer_test() returns trigger language plpgsql as $$ begin raise exception 'Test update failure' using errcode='23514'; end $$; create trigger fail_transfer_test before update on public.spark_states for each row execute function private.fail_transfer_test();");
+await asUser(a);
+await rejected(passSql,[gid,3,ctx.group.prompt_id,b,'Rollback check'],'23514');
+assert.equal((await db.query('select * from public.contributions')).rows.length,2);
+assert.equal((await db.query('select public.group_context($1) as data',[gid])).rows[0].data.group.holder_id,a);
+await db.exec('reset role');
+await db.exec('drop trigger fail_transfer_test on public.spark_states; drop function private.fail_transfer_test();');
+await asUser(a);
+await db.query(passSql,[gid,3,ctx.group.prompt_id,b,'A confirmed third turn.']);
+history=(await db.query('select public.group_contributions($1) as data',[gid])).rows[0].data;
+assert.deepEqual(history.map(c=>c.turn_version),[3,2,1]);
+await asUser(c);
+await rejected('select public.group_contributions($1)',[gid]);
+assert.equal((await db.query('select * from public.contributions')).rows.length,0);
+// Competing client calls for the same turn may not publish different answers twice.
+await asUser(b);
+ctx=(await db.query('select public.group_context($1) as data',[gid])).rows[0].data;
+const competing=await Promise.allSettled([
+ db.query(passSql,[gid,ctx.group.version,ctx.group.prompt_id,a,'First competing answer.']),
+ db.query(passSql,[gid,ctx.group.version,ctx.group.prompt_id,a,'Second competing answer.'])
+]);
+assert.equal(competing.filter(r=>r.status==='fulfilled').length,1);
+assert.equal(competing.filter(r=>r.status==='rejected').length,1);
+assert.equal((await db.query('select public.group_contributions($1) as data',[gid])).rows[0].data.length,4);
+console.log('PostgreSQL membership, invitations and spark passing checks passed: private access, recipient/holder validation, exact retries, stale turns, fresh prompt identity, ordered history and atomic rollback.');
 await db.close();

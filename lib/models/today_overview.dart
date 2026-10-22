@@ -7,6 +7,7 @@ class SparkGroup {
     required this.holderName,
     required this.promptId,
     required this.prompt,
+    this.version = 1,
   });
 
   final String id;
@@ -16,6 +17,7 @@ class SparkGroup {
   final String holderName;
   final String promptId;
   final String prompt;
+  final int version;
 }
 
 class SparkActivity {

@@ -459,4 +459,120 @@ void main() {
       await client.dispose();
     },
   );
+  test(
+    'passing SDK sends the turn version and maps confirmed receipt, private history and activity',
+    () async {
+      var fail = true;
+      var passCalls = 0;
+      final saved = {
+        'id': 'receipt-1',
+        'group_id': groupId,
+        'turn_version': 17,
+        'sender_id': userId,
+        'recipient_id': 'member-b',
+        'sender_name': 'Student',
+        'recipient_name': 'Sam',
+        'prompt_id': 'prompt-17',
+        'prompt_text': 'What helped?',
+        'answer': 'Our shared answer.',
+        'created_at': '2026-10-28T12:00:00Z',
+      };
+      final client = SupabaseClient(
+        'https://example.supabase.co',
+        'test-key',
+        authOptions: const AuthClientOptions(autoRefreshToken: false),
+        httpClient: jsonClient((r) async {
+          if (r.url.path.contains('/auth/')) {
+            return http.Response(jsonEncode(sessionJson()), 200);
+          }
+          if (r.url.path.endsWith('/my_group_overview')) {
+            return http.Response(
+              jsonEncode({
+                'viewer_id': userId,
+                'groups': [
+                  {...groupJson(), 'version': 17, 'prompt_id': 'prompt-17'},
+                ],
+                'requests': [],
+                'invitations': [],
+                'activities': [
+                  {
+                    'sender_name': 'Student',
+                    'recipient_name': 'Sam',
+                    'group_name': 'Circle',
+                    'created_at': '2026-10-28T12:00:00Z',
+                  },
+                ],
+              }),
+              200,
+            );
+          }
+          final params = jsonDecode(r.body) as Map;
+          expect(params['p_group_id'], groupId);
+          if (r.url.path.endsWith('/group_contributions')) {
+            return http.Response(jsonEncode([saved]), 200);
+          }
+          expect(r.url.path.endsWith('/pass_spark'), isTrue);
+          expect(params['p_expected_version'], 17);
+          expect(params['p_prompt_id'], 'prompt-17');
+          expect(params['p_recipient_id'], 'member-b');
+          expect(params['p_answer'], 'Our shared answer.');
+          passCalls++;
+          return fail
+              ? http.Response(
+                  jsonEncode({
+                    'code': '22023',
+                    'message': 'Your turn has changed.',
+                  }),
+                  400,
+                )
+              : http.Response(jsonEncode(saved), 200);
+        }),
+      );
+      await client.auth.signInWithPassword(
+        email: 'student@example.com',
+        password: 'password',
+      );
+      final repo = SupabaseGroupRepository(client);
+      var changes = 0;
+      repo.addListener(() => changes++);
+      final overview = await repo.loadToday();
+      final turn = overview.groups.single;
+      expect(turn.version, 17);
+      expect(
+        overview.activities.single.title,
+        'Student passed the spark to Sam',
+      );
+      expect(passCalls, 0);
+      await expectLater(
+        repo.passSpark(turn: turn, recipientId: 'member-b', answer: '   '),
+        throwsA(isA<GroupInputException>()),
+      );
+      expect(passCalls, 0);
+      await expectLater(
+        repo.passSpark(
+          turn: turn,
+          recipientId: 'member-b',
+          answer: 'Our shared answer.',
+        ),
+        throwsA(isA<GroupInputException>()),
+      );
+      expect(changes, 0);
+      fail = false;
+      final receipt = await repo.passSpark(
+        turn: turn,
+        recipientId: 'member-b',
+        answer: 'Our shared answer.',
+      );
+      expect(receipt.recipientName, 'Sam');
+      expect(receipt.turnVersion, 17);
+      expect(changes, 1);
+      expect(
+        (await repo.loadContributions(groupId)).single.answer,
+        'Our shared answer.',
+      );
+      expect(passCalls, 2);
+      repo.dispose();
+      await client.dispose();
+    },
+  );
 }
