@@ -39,13 +39,16 @@ class GroupOverview {
     required List<SparkGroup> groups,
     required List<GroupJoinRequest> requests,
     List<GroupInvitation> invitations = const [],
+    List<SparkActivity> activities = const [],
   }) : groups = List.unmodifiable(groups),
        requests = List.unmodifiable(requests),
-       invitations = List.unmodifiable(invitations);
+       invitations = List.unmodifiable(invitations),
+       activities = List.unmodifiable(activities);
   final String viewerId;
   final List<SparkGroup> groups;
   final List<GroupJoinRequest> requests;
   final List<GroupInvitation> invitations;
+  final List<SparkActivity> activities;
 }
 
 class GroupMembershipRequest {

@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/group_details.dart';
+import '../models/spark_contribution.dart';
+import 'package:characters/characters.dart';
 import '../models/today_overview.dart';
 import 'group_repository.dart';
 
@@ -47,6 +49,18 @@ class SupabaseGroupRepository extends ChangeNotifier
     );
     return GroupOverview(
       viewerId: raw['viewer_id'] as String,
+      activities: ((raw['activities'] as List?) ?? []).map((v) {
+        final a = Map<String, dynamic>.from(v as Map);
+        return SparkActivity(
+          title:
+              '${a['sender_name']} passed the spark to ${a['recipient_name']}',
+          groupName: a['group_name'] as String,
+          when: DateTime.parse(
+            a['created_at'] as String,
+          ).toLocal().toString().substring(0, 16),
+          detail: 'Answer shared with the group.',
+        );
+      }).toList(),
       invitations: ((raw['invitations'] as List?) ?? []).map((v) {
         final item = Map<String, dynamic>.from(v as Map);
         return GroupInvitation(
@@ -69,7 +83,7 @@ class SupabaseGroupRepository extends ChangeNotifier
     return TodayOverview(
       viewerId: overview.viewerId,
       groups: overview.groups,
-      activities: const [],
+      activities: overview.activities,
     );
   }
 
@@ -193,6 +207,51 @@ class SupabaseGroupRepository extends ChangeNotifier
     notifyListeners();
   });
 
+  @override
+  Future<SparkContribution> passSpark({
+    required SparkGroup turn,
+    required String recipientId,
+    required String answer,
+  }) => _call(() async {
+    if (answer.trim().isEmpty || answer.characters.length > 300) {
+      throw const GroupInputException(
+        'Write an answer of up to 300 characters.',
+      );
+    }
+    final raw = await client
+        .rpc(
+          'pass_spark',
+          params: {
+            'p_group_id': turn.id,
+            'p_expected_version': turn.version,
+            'p_prompt_id': turn.promptId,
+            'p_recipient_id': recipientId,
+            'p_answer': answer,
+          },
+        )
+        .timeout(const Duration(seconds: 20));
+    final saved = SparkContribution.fromJson(
+      Map<String, dynamic>.from(raw as Map),
+    );
+    _checkAccount();
+    notifyListeners();
+    return saved;
+  });
+  @override
+  Future<List<SparkContribution>> loadContributions(
+    String groupId,
+  ) => _call(() async {
+    final rows =
+        await client.rpc('group_contributions', params: {'p_group_id': groupId})
+            as List;
+    return List.unmodifiable(
+      rows.map(
+        (row) =>
+            SparkContribution.fromJson(Map<String, dynamic>.from(row as Map)),
+      ),
+    );
+  });
+
   static SparkGroup _group(Map<String, dynamic> m) => SparkGroup(
     id: m['id'] as String,
     name: m['name'] as String,
@@ -201,6 +260,7 @@ class SupabaseGroupRepository extends ChangeNotifier
     holderName: m['holder_name'] as String,
     promptId: m['prompt_id'] as String,
     prompt: m['prompt'] as String,
+    version: (m['version'] as num?)?.toInt() ?? 1,
   );
   static GroupJoinRequest _request(Map<String, dynamic> m) => GroupJoinRequest(
     groupId: m['group_id'] as String,

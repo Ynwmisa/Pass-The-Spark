@@ -1,5 +1,6 @@
 import '../screens/groups/group_members.dart';
 import '../screens/groups/invite_member.dart';
+import '../screens/groups/group_timeline.dart';
 import '../services/account_session.dart';
 import '../screens/account/profile.dart';
 import '../repositories/group_repository.dart';
@@ -64,6 +65,13 @@ GoRouter createAppRouter(
                     groupId: state.pathParameters['groupId']!,
                   ),
                   routes: [
+                    GoRoute(
+                      path: 'timeline',
+                      builder: (context, state) => GroupTimelineScreen(
+                        repository: groups,
+                        groupId: state.pathParameters['groupId']!,
+                      ),
+                    ),
                     GoRoute(
                       path: 'invite',
                       builder: (context, state) => InviteMemberScreen(

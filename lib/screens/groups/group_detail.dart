@@ -158,18 +158,7 @@ class GroupDetailScreen extends StatelessWidget {
                 _ToolRow(
                   title: 'Shared timeline',
                   subtitle: 'Previous answers and passes',
-                  onTap: () => _open(
-                    context,
-                    Scaffold(
-                      appBar: AppBar(title: const Text('Group timeline')),
-                      body: const Padding(
-                        padding: EdgeInsets.all(24),
-                        child: Text(
-                          'No contributions to show yet. Shared answers will appear here when spark passing is available.',
-                        ),
-                      ),
-                    ),
-                  ),
+                  onTap: () => context.push('/groups/$groupId/timeline'),
                 ),
                 const SizedBox(height: 12),
                 _ToolRow(
